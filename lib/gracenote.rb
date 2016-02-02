@@ -308,7 +308,7 @@ class Gracenote
     
     body += "<OPTION>
               <PARAMETER>SELECT_EXTENDED</PARAMETER>
-              <VALUE>COVER,REVIEW,ARTIST_BIOGRAPHY,ARTIST_IMAGE,ARTIST_OET,MOOD,TEMPO</VALUE>
+              <VALUE>COVER,REVIEW,ARTIST_BIOGRAPHY,ARTIST_IMAGE,ARTIST_OET,MOOD,TEMPO,LINK</VALUE>
             </OPTION>"
 
     # Include more detailed responses.
