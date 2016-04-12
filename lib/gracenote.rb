@@ -131,7 +131,7 @@ class Gracenote
     
     json = resp["RESPONSES"]
 
-    output = Array.new()
+    output = {}
     output[:artist_origin] = json["RESPONSE"]["ALBUM"]["ARTIST_ORIGIN"].nil? ? "" : _getOETElem(json["RESPONSE"]["ALBUM"]["ARTIST_ORIGIN"]) 
     output[:artist_era]    = json["RESPONSE"]["ALBUM"]["ARTIST_ERA"].nil? ? "" : _getOETElem(json["RESPONSE"]["ALBUM"]["ARTIST_ERA"])
     output[:artist_type]   = json["RESPONSE"]["ALBUM"]["ARTIST_TYPE"].nil? ? "" : _getOETElem(json["RESPONSE"]["ALBUM"]["ARTIST_TYPE"])
@@ -295,13 +295,13 @@ class Gracenote
       end
       # If a search scenario, then need the text input
       if artist != "" 
-        body += "<TEXT TYPE=\"ARTIST\">" + artist + "</TEXT>"
+        body += "<TEXT TYPE=\"ARTIST\"><![CDATA[#{artist}]]></TEXT>"
       end
       if track != "" 
-        body += "<TEXT TYPE=\"TRACK_TITLE\">" + track + "</TEXT>"
+        body += "<TEXT TYPE=\"TRACK_TITLE\"><![CDATA[#{track}]]></TEXT>"
       end
       if album != "" 
-        body += "<TEXT TYPE=\"ALBUM_TITLE\">" + album + "</TEXT>"
+        body += "<TEXT TYPE=\"ALBUM_TITLE\"><![CDATA[#{album}]]></TEXT>"
       end
     end
     # Include extended data.
@@ -344,16 +344,21 @@ class Gracenote
     status = json['RESPONSES']['RESPONSE']['STATUS'].to_s
     case status
       when "ERROR"
-        raise "ERROR in response"
+        raise ResponseError, "ERROR in response"
       when "NO_MATCH"
-        raise "No match found"
+        raise NoMatch, "No match found"
       else
         if status != "OK"
-          raise "Problems found in the response"
+          raise UnknownError, "Problems found in the response"
         end
      end 
     return json
   end
+
+  class BaseError < StandardError; end
+  class ResponseError < BaseError; end
+  class NoMatch < BaseError; end
+  class UnknownError < BaseError; end
   
   # Function: parseAlbumRES
   # Parse's an XML response
@@ -382,12 +387,13 @@ class Gracenote
       obj[:album_title]        = a["TITLE"].to_s
       obj[:album_year]         = a["DATE"].to_s
       obj[:genre]              = _getOETElem(a["GENRE"])
-      obj[:album_art_url]      = _getAttribElem(a["URL"], "TYPE", "COVERART")
 
-      # Artist metadata
-      obj[:artist_image_url]  = _getAttribElem(a["URL"], "TYPE", "ARTIST_IMAGE")
-      obj[:artist_bio_url]    = _getAttribElem(a["URL"], "TYPE", "ARTIST_BIOGRAPHY")
-      obj[:review_url]        = _getAttribElem(a["URL"], "TYPE", "REVIEW")
+      if a['URL']
+        obj[:album_art_url]     = _getAttribElem(a["URL"], "TYPE", "COVERART")
+        obj[:artist_image_url]  = _getAttribElem(a["URL"], "TYPE", "ARTIST_IMAGE")
+        obj[:artist_bio_url]    = _getAttribElem(a["URL"], "TYPE", "ARTIST_BIOGRAPHY")
+        obj[:review_url]        = _getAttribElem(a["URL"], "TYPE", "REVIEW")
+      end
 
       # If we have artist OET info, use it.
       if not a["ARTIST_ORIGIN"].nil?
@@ -456,6 +462,7 @@ class Gracenote
   #   attribute
   #   value
   def _getAttribElem(data, attribute, value)
+    return unless data.is_a?(Array)
     data.each do |g|
       attrib = Rack::Utils.parse_query URI(g).query
       if(attrib[attribute] == value) 
@@ -476,8 +483,8 @@ class Gracenote
     else 
       input = data
     end
-    input.each do |g|
-      output.push({:id => g["ID"].to_i, :text => g})
+    input.compact.each do |g|
+      output.push({:id => g.attributes["ID"].to_i, :text => g})
     end
     return output
   end
