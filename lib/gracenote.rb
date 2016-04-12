@@ -364,7 +364,7 @@ class Gracenote
   # Parse's an XML response
   # Arguments:
   #   resp
-  def parseAlbumRES resp
+  def parseAlbumRES resp, fetchExtra = true
     json = nil
     begin
       json = checkRES resp
@@ -400,7 +400,7 @@ class Gracenote
         obj[:artist_era]    = _getOETElem(a["ARTIST_ERA"])
         obj[:artist_type]   = _getOETElem(a["ARTIST_TYPE"])
         obj[:artist_origin] = _getOETElem(a["ARTIST_ORIGIN"])
-      else
+      elsif fetchExtra
       # If not available, do a fetch to try and get it instead.
         obj = merge_recursively(obj, fetchOETData(a["GN_ID"]) )
       end
