@@ -429,6 +429,12 @@ class Gracenote
         track[:mood]              = _getOETElem(t["MOOD"])
         track[:tempo]             = _getOETElem(t["TEMPO"])
 
+        if t['XID']
+          track[:external_ids]      = _getOETElem(t["XID"])
+        else
+          track[:external_ids]      = []
+        end
+
         # If track level GOET data exists, overwrite metadata from album.
         if not t["GENRE"].nil? 
           obj[:genre]         = _getOETElem(t["GENRE"])
