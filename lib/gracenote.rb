@@ -2,10 +2,10 @@ require "gracenote/HTTP"
 require "crack"
 
 class Gracenote
-
-  # class variables
-  @@ALL_RESULTS = '1'
-  @@BEST_MATCH_ONLY = '0'
+  module MatchMode
+    ALL_RESULTS = '1'
+    BEST_MATCH_ONLY = '0'
+  end
 
   attr_accessor :clientID, :clientTag, :userID, :apiURL
 
@@ -64,13 +64,13 @@ class Gracenote
   #   albumTitle
   #   trackTitle
   #   matchMode
-  def findTrack(artistName, albumTitle, trackTitle, matchMode = @@ALL_RESULTS)
+  def findTrack(artistName, albumTitle, trackTitle, matchMode = MatchMode::ALL_RESULTS, fetchExtraData = true)
     if @userID == nil 
       registerUser
     end
     body = constructAlbumQueryBody(artistName, albumTitle, trackTitle, "", "ALBUM_SEARCH", matchMode)
     data = api(constructQueryReq(body))
-    return parseAlbumRES(data);
+    return parseAlbumRES(data, fetchExtraData);
   end
   
   # Function: findArtist 
@@ -78,7 +78,7 @@ class Gracenote
   # Arguments:
   #   artistName
   #   matchMode
-  def findArtist(artistName, matchMode = @@ALL_RESULTS)
+  def findArtist(artistName, matchMode = MatchMode::ALL_RESULTS)
     return findTrack(artistName, "", "", matchMode)
   end
 
@@ -89,7 +89,7 @@ class Gracenote
   #   albumTitle
   #   trackTitle
   #   matchMode  
-  def findAlbum(artistName, albumTitle, matchMode = @@ALL_RESULTS)
+  def findAlbum(artistName, albumTitle, matchMode = MatchMode::ALL_RESULTS)
     return findTrack(artistName, albumTitle, "", matchMode)
   end
   
@@ -282,7 +282,7 @@ class Gracenote
   #   gn_id
   #   command
   #   matchMode
-  def constructAlbumQueryBody(artist, album, track, gn_id, command = "ALBUM_SEARCH", matchMode = @@ALL_RESULTS)
+  def constructAlbumQueryBody(artist, album, track, gn_id, command = "ALBUM_SEARCH", matchMode = MatchMode::ALL_RESULTS)
     body = ""
     # If a fetch scenario, user the Gracenote ID.
     if command == "ALBUM_FETCH"
@@ -290,7 +290,7 @@ class Gracenote
     else
       # Otherwise, just do a search.
       # Only get the single best match if that's what the user wants.
-      if matchMode == @@BEST_MATCH_ONLY
+      if matchMode == MatchMode::BEST_MATCH_ONLY
         body += "<MODE>SINGLE_BEST_COVER</MODE>" 
       end
       # If a search scenario, then need the text input
