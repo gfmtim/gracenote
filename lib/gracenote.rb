@@ -344,7 +344,7 @@ class Gracenote
     status = json['RESPONSES']['RESPONSE']['STATUS'].to_s
     case status
       when "ERROR"
-        raise ResponseError, "ERROR in response"
+        raise ResponseError, "ERROR in response: #{json['RESPONSES']['MESSAGE'].to_s}"
       when "NO_MATCH"
         raise NoMatch, "No match found"
       else
