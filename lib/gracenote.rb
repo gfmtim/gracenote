@@ -435,9 +435,8 @@ class Gracenote
           track[:external_ids]      = []
         end
 
-        # If track level GOET data exists, overwrite metadata from album.
         if not t["GENRE"].nil? 
-          obj[:genre]         = _getOETElem(t["GENRE"])
+          track[:genre]       = _getOETElem(t["GENRE"])
         end
         if not t["ARTIST_ERA"].nil?
           obj[:artist_era]    = _getOETElem(t["ARTIST_ERA"])
