@@ -489,7 +489,7 @@ class Gracenote
       input = data
     end
     input.compact.each do |g|
-      output.push({:id => g.attributes["ID"].to_i, :text => g})
+      output.push({:id => g.attributes["ID"].to_i, :text => g, attributes: g.attributes})
     end
     return output
   end
